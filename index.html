@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>UV Guard · 紫外线防护助手</title>
+<meta name="description" content="实时紫外线指数检测，自动识别室内外，智能防晒霜涂抹提醒。">
+<meta property="og:title" content="UV Guard · 紫外线防护助手">
+<meta property="og:description" content="实时UV指数 · 自动识别室内外 · 智能防晒提醒 · 皮肤伤害分析">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://em-content.zobj.net/source/apple/391/sun_2600-fe0f.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f2f2f7;--bg2:#ffffff;--bg3:#e5e5ea;
+  --text:#1c1c1e;--text2:#3a3a3c;--text3:#8e8e93;
+  --sep:rgba(60,60,67,0.12);
+  --blue:#007aff;--green:#34c759;--orange:#ff9500;
+  --red:#ff3b30;--yellow:#ffcc00;--purple:#af52de;
+  --r:18px;--font:'DM Sans',-apple-system,sans-serif;
+  --sb:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#000;--bg2:#1c1c1e;--bg3:#2c2c2e;--text:#fff;--text2:rgba(235,235,245,.8);--text3:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);}
+}
+html,body{height:100%;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+.root{min-height:100vh;padding-bottom:calc(32px + var(--sb));}
+
+/* LANG BAR */
+.lang-bar{display:flex;justify-content:flex-end;padding:12px 16px 0;gap:6px;}
+.lb{padding:5px 13px;border-radius:16px;border:1.5px solid var(--sep);background:transparent;font-family:var(--font);font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;transition:all .18s;}
+.lb.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+/* STATUS */
+.sa{display:flex;align-items:center;justify-content:space-between;padding:6px 20px 0;}
+.sa-t{font-size:15px;font-weight:600;letter-spacing:-.2px;}
+
+/* HEADER */
+.ph{padding:8px 20px 0;display:flex;align-items:flex-end;justify-content:space-between;}
+.pt{font-size:34px;font-weight:700;letter-spacing:-.8px;line-height:1.05;}
+.ep{display:flex;align-items:center;gap:5px;background:var(--bg2);border:none;border-radius:20px;padding:7px 13px;font-family:var(--font);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.08),0 0 0 .5px rgba(0,0,0,.06);transition:transform .15s;white-space:nowrap;}
+.ep:active{transform:scale(.96);}
+.ed{width:8px;height:8px;border-radius:50%;background:var(--green);transition:background .4s;}
+.ep.in .ed{background:var(--blue);}
+
+/* HERO */
+.hero{margin:14px 16px 0;border-radius:var(--r);overflow:hidden;position:relative;background:linear-gradient(145deg,#34c759,#30d158);box-shadow:0 8px 32px rgba(0,0,0,.12);transition:background .8s;min-height:200px;}
+.hi{padding:24px 24px 20px;position:relative;z-index:1;}
+.ht{display:flex;align-items:flex-start;justify-content:space-between;}
+.uvc{font-size:13px;font-weight:600;letter-spacing:.3px;color:rgba(255,255,255,.8);text-transform:uppercase;}
+.uvn{font-size:80px;font-weight:700;letter-spacing:-4px;line-height:1;color:#fff;font-variant-numeric:tabular-nums;}
+.uvr{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+.uvb{background:rgba(255,255,255,.22);backdrop-filter:blur(8px);border-radius:12px;padding:6px 12px;font-size:14px;font-weight:600;color:#fff;}
+.uveb{background:rgba(255,255,255,.15);border-radius:10px;padding:4px 10px;font-size:12px;color:rgba(255,255,255,.9);font-weight:500;}
+.hb{margin-top:16px;display:flex;align-items:flex-end;justify-content:space-between;}
+.ud{font-size:14px;color:rgba(255,255,255,.88);line-height:1.4;max-width:200px;font-weight:400;}
+.bb{background:rgba(0,0,0,.18);border-radius:10px;padding:6px 10px;text-align:right;flex-shrink:0;}
+.bn{font-size:18px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;}
+.bl{font-size:10px;color:rgba(255,255,255,.75);font-weight:500;}
+.blob{position:absolute;border-radius:50%;background:rgba(255,255,255,.08);pointer-events:none;}
+
+/* SKIN */
+.sc{margin:14px 16px 0;background:var(--bg2);border-radius:var(--r);padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);}
+.cl{font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:12px;}
+.sp{display:flex;gap:8px;}
+.so{flex:1;border:1.5px solid var(--sep);border-radius:12px;padding:10px 6px;background:transparent;cursor:pointer;font-family:var(--font);transition:all .18s;text-align:center;}
+.so.on{border-color:var(--blue);background:rgba(0,122,255,.07);}
+.ss{width:24px;height:24px;border-radius:50%;margin:0 auto 5px;border:1px solid rgba(0,0,0,.1);}
+.sn{font-size:11px;color:var(--text2);font-weight:500;line-height:1.3;}
+
+/* SECTION HEADER */
+.shdr{padding:22px 20px 8px;display:flex;align-items:baseline;justify-content:space-between;}
+.st{font-size:20px;font-weight:700;letter-spacing:-.4px;}
+.ss2{font-size:13px;color:var(--text3);font-weight:400;}
+
+/* SUNSCREEN CARD */
+.ssc{margin:0 16px;background:var(--bg2);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);}
+.nb{background:var(--orange);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;transition:background .5s;}
+.nb.ok{background:var(--green);}.nb.urgent{background:var(--red);}.nb.low{background:var(--blue);}
+.nl{font-size:12px;font-weight:600;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;}
+.nt{font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px;font-variant-numeric:tabular-nums;}
+.ni{font-size:13px;color:rgba(255,255,255,.8);text-align:right;}
+.ab{width:calc(100% - 36px);margin:14px 18px;background:var(--orange);border:none;border-radius:13px;padding:15px;font-family:var(--font);font-size:16px;font-weight:600;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,filter .12s,opacity .3s;position:relative;overflow:hidden;}
+.ab:active{transform:scale(.97);filter:brightness(.92);}
+.ab.done{background:var(--green);}
+.ab.off{background:var(--blue);opacity:.7;pointer-events:none;}
+.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:rip .5s linear;pointer-events:none;}
+@keyframes rip{to{transform:scale(4);opacity:0;}}
+.lsep{height:.5px;background:var(--sep);margin:0 18px;}
+.lhdr{padding:10px 18px 6px;font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;}
+.ll{padding:0 0 4px;}
+.li{display:flex;align-items:center;padding:11px 18px;gap:12px;transition:background .12s;cursor:pointer;animation:si .3s cubic-bezier(.4,0,.2,1) both;}
+@keyframes si{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:translateX(0);}}
+.li:active{background:rgba(0,0,0,.04);}
+.lic{width:36px;height:36px;border-radius:10px;background:rgba(255,149,0,.12);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.lic.p{background:rgba(142,142,147,.12);}
+.lct{flex:1;}
+.lt{font-size:16px;font-weight:600;letter-spacing:-.2px;font-variant-numeric:tabular-nums;}
+.lt.p{color:var(--text3);}
+.lm{font-size:12px;color:var(--text3);margin-top:1px;}
+.lck{font-size:20px;color:var(--green);}
+.lf{color:var(--text3);font-size:17px;}
+.ld{font-size:13px;color:var(--red);padding:4px 8px;opacity:0;transition:opacity .2s;}
+.li:hover .ld{opacity:1;}
+.el{padding:18px 18px 14px;font-size:14px;color:var(--text3);text-align:center;}
+
+/* TIMELINE */
+.tc{margin:12px 16px 0;background:var(--bg2);border-radius:var(--r);padding:18px 18px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);}
+.bars{display:flex;align-items:flex-end;gap:3px;height:72px;}
+.bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.bar{width:100%;border-radius:5px 5px 3px 3px;transition:height .6s cubic-bezier(.4,0,.2,1);min-height:4px;position:relative;}
+.bar.now::after{content:'';position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--text);}
+.blbl{font-size:10px;color:var(--text3);font-weight:500;text-align:center;font-variant-numeric:tabular-nums;}
+.blbl.now{color:var(--blue);font-weight:700;}
+
+/* STATS */
+.sg{margin:12px 16px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.stc{background:var(--bg2);border-radius:var(--r);padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);}
+.si2{font-size:20px;margin-bottom:8px;}
+.sv{font-size:26px;font-weight:700;letter-spacing:-.8px;line-height:1;font-variant-numeric:tabular-nums;}
+.slb{font-size:12px;color:var(--text3);margin-top:4px;font-weight:400;line-height:1.3;}
+
+/* DAMAGE */
+.dc{margin:12px 16px 0;background:var(--bg2);border-radius:var(--r);padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);}
+.dr{display:flex;align-items:center;gap:12px;padding:8px 0;}
+.dr+.dr{border-top:.5px solid var(--sep);}
+.dn{font-size:14px;font-weight:500;color:var(--text2);width:64px;flex-shrink:0;}
+.dt{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.df{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+.dv{font-size:13px;font-weight:600;width:40px;text-align:right;flex-shrink:0;}
+
+/* RECS */
+.rc{margin:12px 16px 0;background:var(--bg2);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);}
+.rr{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;}
+.rr+.rr{border-top:.5px solid var(--sep);}
+.ri{width:32px;height:32px;border-radius:8px;background:rgba(0,122,255,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px;}
+.rt{font-size:14px;color:var(--text2);line-height:1.45;}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(28px + var(--sb));left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);backdrop-filter:blur(20px);color:#fff;padding:12px 20px;border-radius:14px;font-size:14px;font-weight:500;white-space:nowrap;z-index:999;box-shadow:0 4px 24px rgba(0,0,0,.3);opacity:0;transition:opacity .25s;pointer-events:none;}
+.toast.on{opacity:1;}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;}
+.mo.on{opacity:1;pointer-events:all;}
+.ms{width:100%;max-width:480px;background:var(--bg);border-radius:22px 22px 0 0;padding:8px 0 32px;transform:translateY(100%);transition:transform .35s cubic-bezier(.32,0,.67,0);}
+.mo.on .ms{transform:translateY(0);transition:transform .35s cubic-bezier(.22,1,.36,1);}
+.mh{width:36px;height:4px;background:var(--sep);border-radius:2px;margin:8px auto 18px;}
+.mt{font-size:18px;font-weight:700;text-align:center;margin-bottom:8px;letter-spacing:-.3px;}
+.msub{font-size:13px;color:var(--text3);text-align:center;margin-bottom:18px;padding:0 24px;line-height:1.5;}
+.ma{padding:0 16px;display:flex;flex-direction:column;gap:10px;}
+.mb{width:100%;padding:15px;border-radius:13px;border:none;font-family:var(--font);font-size:16px;font-weight:600;cursor:pointer;background:var(--blue);color:#fff;transition:filter .12s;}
+.mb:active{filter:brightness(.9);}
+.mb.cx{background:var(--bg2);color:var(--text);box-shadow:0 0 0 .5px rgba(0,0,0,.08);font-weight:500;}
+
+/* DETECT */
+.db{margin:10px 16px 0;background:rgba(0,122,255,.08);border:1px solid rgba(0,122,255,.2);border-radius:13px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--blue);font-weight:500;}
+.sp2{width:16px;height:16px;border:2px solid rgba(0,122,255,.3);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.fn{text-align:center;font-size:11px;color:var(--text3);padding:24px 24px 0;line-height:1.6;}
+@keyframes hp{0%{background:rgba(52,199,89,.15);}100%{background:transparent;}}
+.li.nf{animation:si .3s cubic-bezier(.4,0,.2,1) both,hp 1.2s .3s ease forwards;}
+</style>
+</head>
+<body>
+<div class="root">
+
+  <div class="lang-bar">
+    <button class="lb on" onclick="setLang('zh')" id="lb-zh">中文</button>
+    <button class="lb" onclick="setLang('ja')" id="lb-ja">日本語</button>
+    <button class="lb" onclick="setLang('en')" id="lb-en">EN</button>
+  </div>
+
+  <div class="sa">
+    <div class="sa-t" id="clock">9:41</div>
+    <div style="display:flex;gap:5px;font-size:12px;"><span>📍</span><span>⚡</span></div>
+  </div>
+
+  <div class="ph">
+    <div class="pt" id="t-pt">紫外线</div>
+    <button class="ep" id="ep" onclick="toggleEnv()">
+      <div class="ed" id="ed"></div>
+      <span id="t-el">检测中…</span>
+    </button>
+  </div>
+
+  <div class="db" id="db">
+    <div class="sp2"></div>
+    <span id="t-det">正在通过光线传感器判断室内外…</span>
+  </div>
+
+  <div class="hero" id="hero">
+    <div class="blob" style="width:180px;height:180px;top:-50px;right:-30px;"></div>
+    <div class="blob" style="width:100px;height:100px;bottom:-20px;left:20px;"></div>
+    <div class="hi">
+      <div class="ht">
+        <div>
+          <div class="uvc" id="t-uvc">紫外线指数</div>
+          <div class="uvn" id="uvn">—</div>
+        </div>
+        <div class="uvr">
+          <div class="uvb" id="uvb">—</div>
+          <div class="uveb" id="uveb">—</div>
+        </div>
+      </div>
+      <div class="hb">
+        <div class="ud" id="uvd">—</div>
+        <div class="bb" id="bb" style="display:none">
+          <div class="bn" id="bnum">—</div>
+          <div class="bl" id="t-bl">分钟后灼伤</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sc">
+    <div class="cl" id="t-sk">肤质类型</div>
+    <div class="sp">
+      <button class="so" onclick="setSkin(0)" id="s0"><div class="ss" style="background:#fde8d0"></div><div class="sn" id="sn0">I型<br>极白</div></button>
+      <button class="so on" onclick="setSkin(1)" id="s1"><div class="ss" style="background:#deb887"></div><div class="sn" id="sn1">II型<br>白皙</div></button>
+      <button class="so" onclick="setSkin(2)" id="s2"><div class="ss" style="background:#c8a882"></div><div class="sn" id="sn2">III型<br>中等</div></button>
+      <button class="so" onclick="setSkin(3)" id="s3"><div class="ss" style="background:#8d5524"></div><div class="sn" id="sn3">IV型<br>偏深</div></button>
+    </div>
+  </div>
+
+  <div class="shdr">
+    <div class="st" id="t-lt">防晒记录</div>
+    <div class="ss2" id="spfb">SPF 30+</div>
+  </div>
+  <div class="ssc">
+    <div class="nb ok" id="nxb">
+      <div>
+        <div class="nl" id="t-nl">下次涂抹</div>
+        <div class="nt" id="nxt">—</div>
+      </div>
+      <div class="ni" id="nxi">—</div>
+    </div>
+    <button class="ab" id="abt" onclick="onApply(event)">
+      <span>🧴</span><span id="t-ab">我已涂好防晒霜</span>
+    </button>
+    <div class="lsep"></div>
+    <div class="lhdr" id="t-lh">今日记录</div>
+    <div class="ll" id="loglist"><div class="el" id="t-el2">点击上方按钮记录涂抹时间</div></div>
+  </div>
+
+  <div class="tc">
+    <div class="cl" id="t-tl">全天UV曲线</div>
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <div class="sg">
+    <div class="stc"><div class="si2">⏱️</div><div class="sv" id="s-burn" style="color:var(--red)">—</div><div class="slb" id="t-sb">裸肤灼伤时间</div></div>
+    <div class="stc"><div class="si2">📊</div><div class="sv" id="s-dose" style="color:var(--orange)">0%</div><div class="slb" id="t-sd">今日UV累积剂量</div></div>
+    <div class="stc"><div class="si2">🔢</div><div class="sv" id="s-cnt" style="color:var(--blue)">0</div><div class="slb" id="t-sc">今日涂抹次数</div></div>
+    <div class="stc"><div class="si2">🌡️</div><div class="sv" id="s-pk" style="color:var(--purple)">—</div><div class="slb" id="t-sp">今日UV峰值时段</div></div>
+  </div>
+
+  <div class="dc">
+    <div class="cl" id="t-dmgt">皮肤伤害风险</div>
+    <div class="dr"><div class="dn" id="t-dr">晒红</div><div class="dt"><div class="df" id="d-r" style="background:var(--red)"></div></div><div class="dv" id="d-rv" style="color:var(--red)">—</div></div>
+    <div class="dr"><div class="dn" id="t-dt">晒黑</div><div class="dt"><div class="df" id="d-t" style="background:var(--orange)"></div></div><div class="dv" id="d-tv" style="color:var(--orange)">—</div></div>
+    <div class="dr"><div class="dn">DNA</div><div class="dt"><div class="df" id="d-d" style="background:var(--purple)"></div></div><div class="dv" id="d-dv" style="color:var(--purple)">—</div></div>
+    <div class="dr"><div class="dn" id="t-da">光老化</div><div class="dt"><div class="df" id="d-a" style="background:var(--yellow)"></div></div><div class="dv" id="d-av" style="color:var(--text3)">—</div></div>
+  </div>
+
+  <div class="shdr" style="padding-top:18px;">
+    <div class="st" id="t-rt">防护建议</div>
+  </div>
+  <div class="rc" id="recs"></div>
+
+  <div class="fn" id="t-fn">基于WHO紫外线指数标准 · Fitzpatrick皮肤分类<br>室内外识别使用光线传感器 · 仅供参考</div>
+</div>
+
+<div class="mo" id="modal" onclick="closeMO(event)">
+  <div class="ms">
+    <div class="mh"></div>
+    <div class="mt" id="t-mt">记录涂抹时间</div>
+    <div class="msub" id="msub">确认在此时间涂抹了防晒霜？</div>
+    <div class="ma">
+      <button class="mb" onclick="confirmApply()" id="t-mc">✅ 确认记录</button>
+      <button class="mb cx" onclick="closeMN()" id="t-mcc">取消</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const I18N={
+  zh:{
+    pt:'紫外线',uvc:'紫外线指数',det:'正在通过光线传感器判断室内外…',
+    sk:'肤质类型',sns:['I型<br>极白','II型<br>白皙','III型<br>中等','IV型<br>偏深'],
+    lt:'防晒记录',nl:'下次涂抹',lh:'今日记录',el:'点击上方按钮记录涂抹时间',
+    ab:'我已涂好防晒霜',done:'已记录 ✓',off:'当前无需防晒',
+    bl:'分钟后灼伤',unl:'不限',tl:'全天UV曲线',
+    sb:'裸肤灼伤时间',sd:'今日UV累积剂量',sc:'今日涂抹次数',sp:'今日UV峰值时段',
+    dmgt:'皮肤伤害风险',dr:'晒红',dt:'晒黑',da:'光老化',
+    dmg:['极低','低','中','高','极高'],
+    rt:'防护建议',mt:'记录涂抹时间',mc:'✅ 确认记录',mcc:'取消',
+    msub:t=>`记录 ${t} 涂抹了防晒霜`,
+    inl:'🏠 室内',out:'☀️ 室外',inlE:'室内',outE:'室外',
+    inlD:'玻璃过滤约96%紫外线，室内几乎无风险',
+    lvl:['极低','中等','较高','很高','极端'],
+    dsc:['无需防晒，尽情享受阳光','建议基础防晒，外出超30分钟请涂抹','必须防晒！出门前涂抹SPF30+','强烈防晒！减少11-15点户外活动','极端风险！请避免任何户外暴露'],
+    nr:{inl:{l:'室内或UV极低，无需防晒',s:'如外出请提前涂抹'},done:{l:'今日防晒已结束',s:'明天继续保持'},
+        ov:'⚠️ 已到补涂时间',ml:m=>`${m} 分钟后`,hl:h=>`约 ${h} 小时后`},
+    lm:s=>`SPF ${s}+ · 有效约2小时`,lfs:m=>m<60?`${m} 分钟后`:`约${Math.floor(m/60)}小时后`,
+    lfl:'建议补涂',
+    ta:t=>`✅ 已记录 ${t}`,td:'已删除记录',
+    toi:r=>`🏠 室内 · ${r}`,too:r=>`☀️ 室外 · ${r}`,
+    tsi:'🏠 已切换为室内',tso:'☀️ 已切换为室外',
+    lr:l=>`光线强度 ${l} lux`,tr:'基于时段估算',
+    spfr:s=>`建议 SPF ${s}+`,hl2:'>2小时',ml2:m=>`${m}分钟`,
+    fn:'基于WHO紫外线指数标准 · Fitzpatrick皮肤分类<br>室内外识别使用光线传感器 · 仅供参考',
+    r:{
+      inl:['🪟 靠窗久坐时仍有少量UVA穿透，久坐建议薄涂SPF15','💡 室内UV几乎为零，无需担心晒伤','🌿 外出前记得提前30分钟涂好防晒霜'],
+      lo:['🌅 此时UV极弱，是晨跑的最佳时段','😊 无需防晒产品，适量日晒有助维生素D合成'],
+      spf:s=>`🧴 出门前30分钟涂抹SPF${s}+防晒霜，覆盖到耳朵、脖子`,
+      hat:'👒 宽檐帽可减少约40%的面部UV暴露',
+      glass:'🕶️ 选择UV400认证太阳镜，保护眼睛和眼周皮肤',
+      umb:'🌂 遮阳伞可减少约70%的UV直接照射',
+      wat:'🥤 高UV下皮肤更易失水，及时补充水分',
+      avd:'🏠 建议11:00–15:00尽量待在阴凉处或室内',
+      rep:'🔄 每2小时补涂一次防晒霜，游泳/出汗后立即补涂',
+    }
+  },
+  ja:{
+    pt:'紫外線',uvc:'紫外線指数',det:'光センサーで室内外を判定中…',
+    sk:'肌タイプ',sns:['I型<br>色白','II型<br>やや白','III型<br>普通','IV型<br>やや黒'],
+    lt:'日焼け止め記録',nl:'次回塗布',lh:'本日の記録',el:'上のボタンをタップして記録',
+    ab:'日焼け止めを塗りました',done:'記録済み ✓',off:'現在UV対策不要',
+    bl:'分で日焼け',unl:'制限なし',tl:'本日のUV推移',
+    sb:'日焼けまでの時間',sd:'本日UV累積量',sc:'本日の塗布回数',sp:'UVピーク時間帯',
+    dmgt:'肌ダメージリスク',dr:'日焼け赤み',dt:'日焼け黒ずみ',da:'光老化',
+    dmg:['非常に低','低','中','高','非常に高'],
+    rt:'ケア方法',mt:'塗布時間を記録',mc:'✅ 記録する',mcc:'キャンセル',
+    msub:t=>`${t} に日焼け止めを塗布しましたか？`,
+    inl:'🏠 室内',out:'☀️ 屋外',inlE:'室内',outE:'屋外',
+    inlD:'ガラスがUV約96%をカット。室内はほぼリスクなし',
+    lvl:['非常に低','中程度','高い','非常に高い','極端'],
+    dsc:['日焼け止め不要。陽光を楽しんで','30分以上の外出には基本的な日焼け止めを','必ずSPF30+を！外出前に塗布して','強い日差し！11〜15時の屋外活動を控えて','極めて危険！屋外への外出を避けて'],
+    nr:{inl:{l:'室内またはUV低、対策不要',s:'外出前は早めに塗布を'},done:{l:'本日のUV対策終了',s:'明日も続けましょう'},
+        ov:'⚠️ 塗り直しの時間です',ml:m=>`${m} 分後`,hl:h=>`約 ${h} 時間後`},
+    lm:s=>`SPF ${s}+ · 約2時間有効`,lfs:m=>m<60?`${m} 分後`:`約${Math.floor(m/60)}時間後`,
+    lfl:'塗り直し推奨',
+    ta:t=>`✅ ${t} を記録しました`,td:'記録を削除しました',
+    toi:r=>`🏠 室内 · ${r}`,too:r=>`☀️ 屋外 · ${r}`,
+    tsi:'🏠 室内に切り替えました',tso:'☀️ 屋外に切り替えました',
+    lr:l=>`照度 ${l} lux`,tr:'時間帯で推定',
+    spfr:s=>`推奨 SPF ${s}+`,hl2:'>2時間',ml2:m=>`${m}分`,
+    fn:'WHO UV指数基準 · Fitzpatrick分類に基づく<br>光センサーで室内外を検出 · 参考情報',
+    r:{
+      inl:['🪟 窓際に長時間いる場合UVAが透過も。SPF15の薄塗りを','💡 室内のUVはほぼゼロ。日焼けの心配なし','🌿 外出前は30分前に日焼け止めを塗って'],
+      lo:['🌅 UV極弱、朝ランに最適な時間帯','😊 日焼け止め不要。日光浴でビタミンD合成を'],
+      spf:s=>`🧴 外出30分前にSPF${s}+を。耳・首まで忘れずに`,
+      hat:'👒 つば広帽子で顔へのUVを約40%カット',
+      glass:'🕶️ UV400認証サングラスで目と目周りを保護',
+      umb:'🌂 日傘でUV直射を約70%カット',
+      wat:'🥤 高UV時は肌が乾燥しやすい。こまめに水分補給',
+      avd:'🏠 11〜15時は日陰や室内での活動を推奨',
+      rep:'🔄 2時間ごとに塗り直し。水泳・発汗後はすぐに',
+    }
+  },
+  en:{
+    pt:'UV Index',uvc:'UV Index',det:'Detecting indoor/outdoor via light sensor…',
+    sk:'Skin Type',sns:['Type I<br>Very fair','Type II<br>Fair','Type III<br>Medium','Type IV<br>Olive'],
+    lt:'Sunscreen Log',nl:'Next Application',lh:"Today's Log",el:'Tap the button above to log an application',
+    ab:"I've applied sunscreen",done:'Logged ✓',off:'No sunscreen needed',
+    bl:'min to burn',unl:'Unlimited',tl:"Today's UV Curve",
+    sb:'Time to sunburn',sd:'Daily UV dose',sc:'Applications today',sp:'Peak UV window',
+    dmgt:'Skin Damage Risk',dr:'Sunburn',dt:'Tanning',da:'Photoaging',
+    dmg:['Very low','Low','Moderate','High','Very high'],
+    rt:'Protection Tips',mt:'Log Application',mc:'✅ Confirm',mcc:'Cancel',
+    msub:t=>`Log sunscreen application at ${t}?`,
+    inl:'🏠 Indoor',out:'☀️ Outdoor',inlE:'Indoor',outE:'Outdoor',
+    inlD:'Glass filters ~96% UV. Almost no risk indoors.',
+    lvl:['Very Low','Moderate','High','Very High','Extreme'],
+    dsc:['No protection needed. Enjoy the sunshine!','Use basic sunscreen for 30+ min outdoor stays','Sunscreen required! Apply SPF30+ before going out','Reduce 11am–3pm outdoor time. High UV alert!','Extreme risk! Avoid any outdoor sun exposure.'],
+    nr:{inl:{l:'Indoor / UV too low',s:'Apply before heading out'},done:{l:"Today's protection done",s:'Stay consistent tomorrow'},
+        ov:'⚠️ Time to reapply now',ml:m=>`in ${m} min`,hl:h=>`in ~${h} hr`},
+    lm:s=>`SPF ${s}+ · ~2 hours effective`,lfs:m=>m<60?`in ${m} min`:`in ~${Math.floor(m/60)} hr`,
+    lfl:'Suggested reapply',
+    ta:t=>`✅ Logged at ${t}`,td:'Log entry deleted',
+    toi:r=>`🏠 Indoor · ${r}`,too:r=>`☀️ Outdoor · ${r}`,
+    tsi:'🏠 Switched to Indoor',tso:'☀️ Switched to Outdoor',
+    lr:l=>`Light: ${l} lux`,tr:'Estimated by time',
+    spfr:s=>`Recommended SPF ${s}+`,hl2:'>2 hrs',ml2:m=>`${m} min`,
+    fn:'Based on WHO UV Index & Fitzpatrick skin classification<br>Indoor/outdoor via light sensor · For reference only',
+    r:{
+      inl:['🪟 UVA still penetrates glass near windows. A light SPF15 helps','💡 Indoor UV is near zero — no sunburn risk','🌿 Apply sunscreen 30 min before heading outside'],
+      lo:['🌅 UV is very low — great time for a morning run','😊 No sunscreen needed. A little sun helps with vitamin D'],
+      spf:s=>`🧴 Apply SPF${s}+ 30 min before going out. Cover ears & neck`,
+      hat:'👒 A wide-brim hat blocks ~40% of UV on your face',
+      glass:'🕶️ UV400-certified sunglasses protect eyes and skin around them',
+      umb:'🌂 A UV umbrella blocks ~70% of direct UV radiation',
+      wat:'🥤 Skin dehydrates faster in high UV. Stay hydrated',
+      avd:'🏠 Seek shade or stay indoors between 11am and 3pm',
+      rep:'🔄 Reapply every 2 hours, and immediately after swimming or sweating',
+    }
+  }
+};
+
+const UVC=[0,0,0.2,0.6,1.2,2.2,3.5,5.0,6.8,8.2,9.2,9.8,9.5,8.5,7.0,5.2,3.2,1.6,0.6,0.1,0,0,0,0];
+const SKD=[{spf:50,bb:8,f:1.9},{spf:30,bb:15,f:1.4},{spf:30,bb:25,f:1.0},{spf:15,bb:40,f:0.65}];
+const GRD=['linear-gradient(145deg,#34c759,#30d158)','linear-gradient(145deg,#ffcc00,#ff9f0a)','linear-gradient(145deg,#ff9500,#ff6b00)','linear-gradient(145deg,#ff3b30,#d70015)','linear-gradient(145deg,#af52de,#7b2d8b)'];
+
+let lang='zh',env='outdoor',skn=1,logs=[],pat=null,aud=false;
+
+function L(){return I18N[lang];}
+function uv(h,e){const hi=Math.min(Math.max(Math.floor(h),0),23);const v=UVC[hi]+(UVC[Math.min(hi+1,23)]-UVC[hi])*(h-hi);return Math.round((e==='indoor'?v*0.04:v)*10)/10;}
+function ti(u){const t=[2,5,7,10,99];for(let i=0;i<t.length;i++)if(u<=t[i])return i;return 4;}
+function nowH(){const d=new Date();return d.getHours()+d.getMinutes()/60+d.getSeconds()/3600;}
+function fH(h){const r=Math.floor(h),m=Math.round((h%1)*60);return`${String(r).padStart(2,'0')}:${String(m).padStart(2,'0')}`;}
+function fD(d){return d.toLocaleTimeString(lang==='en'?'en-US':lang==='ja'?'ja-JP':'zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});}
+function mu(t){return Math.round((t-nowH())*60);}
+function sched(){const ts=[];let fh=null;for(let h=5;h<=20;h+=0.25){if(uv(h,'outdoor')>=3){fh=h-0.5;break;}}if(fh!==null){ts.push(Math.max(fh,5.5));let n=ts[0]+2;while(n<=18.5){if(uv(n,'outdoor')>=1.5)ts.push(n);n+=2;}}return ts.slice(0,6);}
+
+function setLang(l){
+  lang=l;
+  ['zh','ja','en'].forEach(x=>document.getElementById('lb-'+x).classList.toggle('on',x===l));
+  applyStatic();update();
+}
+
+function applyStatic(){
+  const l=L();
+  $('t-pt',l.pt);$('t-uvc',l.uvc);$('t-det',l.det);$('t-sk',l.sk);
+  l.sns.forEach((n,i)=>{document.getElementById('sn'+i).innerHTML=n;});
+  $('t-lt',l.lt);$('t-nl',l.nl);$('t-lh',l.lh);$('t-el2',l.el);
+  $('t-tl',l.tl);$('t-sb',l.sb);$('t-sd',l.sd);$('t-sc',l.sc);$('t-sp',l.sp);
+  $('t-dmgt',l.dmgt);$('t-dr',l.dr);$('t-dt',l.dt);$('t-da',l.da);
+  $('t-rt',l.rt);$('t-mt',l.mt);$('t-mc',l.mc);$('t-mcc',l.mcc);
+  document.getElementById('t-fn').innerHTML=l.fn;
+}
+
+function $(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+
+function nextRem(){
+  const l=L(),sc=sched(),cur=nowH();
+  let nh=null;
+  if(logs.length>0){const last=logs[logs.length-1];nh=last.time.getHours()+last.time.getMinutes()/60+2;}
+  else{for(const t of sc){if(t>cur){nh=t;break;}}}
+  const u=uv(cur,env);
+  if(env==='indoor'||u<1)return{...l.nr.inl,urgency:'low',nh:null};
+  if(!nh||nh>19)return{...l.nr.done,urgency:'ok',nh:null};
+  const m=mu(nh),urg=m<=15?'urgent':m<=45?'warn':'ok';
+  const sub=m<=0?l.nr.ov:(m<60?l.nr.ml(m):l.nr.hl(Math.floor(m/60)));
+  return{l:fH(nh),sub,urgency:urg,nh};
+}
+
+function update(){
+  const l=L(),h=nowH(),u=uv(h,env),idx=ti(u),sk=SKD[skn];
+  document.getElementById('hero').style.background=GRD[idx];
+  $('uvn',u.toFixed(1));$('uvb',l.lvl[idx]);
+  $('uveb',env==='indoor'?l.inl:l.out);
+  $('uvd',env==='indoor'?l.inlD:l.dsc[idx]);
+  const bb=document.getElementById('bb');
+  if(u>0.5&&env==='outdoor'){bb.style.display='block';const m=Math.round(sk.bb*6/Math.max(u,.1)/sk.f);$('bnum',m>120?'>120':m);$('t-bl',l.bl);}
+  else bb.style.display='none';
+  $('spfb',l.spfr(sk.spf));
+  const ab=document.getElementById('abt'),ll=logs.length>0?logs[logs.length-1]:null;
+  const ja2=ll&&(h-(ll.time.getHours()+ll.time.getMinutes()/60))<0.1;
+  ab.className='ab'+(ja2?' done':'')+(u<1||env==='indoor'?' off':'');
+  $('t-ab',ja2?l.done:(u<1||env==='indoor'?l.off:l.ab));
+  const nr=nextRem();
+  document.getElementById('nxb').className='nb '+(nr.urgency||'ok');
+  $('nxt',nr.l||nr.label||'—');$('nxi',nr.sub||'');
+  renderLogs(h);renderBars(h);
+  let cd=0;for(let hh=5;hh<h;hh+=.25)cd+=uv(hh,env)*.25;
+  $('s-dose',Math.min(100,Math.round(cd/28*100))+'%');
+  const bm=u>0.5?Math.round(sk.bb*6/u/sk.f):null;
+  $('s-burn',!bm?l.unl:(bm>120?l.hl2:l.ml2(bm)));
+  $('s-cnt',logs.length);
+  let pk=0,ph=12;for(let hh=5;hh<=19;hh+=.25){const v=uv(hh,'outdoor');if(v>pk){pk=v;ph=hh;}}
+  $('s-pk',fH(ph));
+  const sf=sk.f*(env==='indoor'?.04:1);
+  setD('d-r',Math.min(100,u*8*sf));setD('d-t',Math.min(100,u*7*sf));
+  setD('d-d',Math.min(100,u*6*sf*.8));setD('d-a',Math.min(100,u*5*sf*.9));
+  renderRecs(u,env);
+  document.getElementById('ep').className='ep'+(env==='indoor'?' in':'');
+  $('t-el',env==='indoor'?l.inlE:l.outE);
+}
+
+function setD(id,p){
+  document.getElementById(id).style.width=p+'%';
+  const l=L(),i=p<15?0:p<35?1:p<55?2:p<75?3:4;
+  const el=document.getElementById(id+'v');if(el)el.textContent=l.dmg[i];
+}
+
+function renderLogs(h){
+  const l=L(),sc=sched(),list=document.getElementById('loglist');
+  let html='';
+  if(!logs.length&&!sc.length){list.innerHTML=`<div class="el">${l.el}</div>`;return;}
+  [...logs].reverse().forEach((log,i)=>{
+    const idx=logs.length-1-i;
+    const delLbl=lang==='en'?'Del':lang==='ja'?'削除':'删除';
+    html+=`<div class="li${i===0?' nf':''}"><div class="lic">🧴</div><div class="lct"><div class="lt">${fD(log.time)}</div><div class="lm">${log.label}</div></div><span class="lck">✓</span><span class="ld" onclick="delLog(${idx})">${delLbl}</span></div>`;
+  });
+  if(env==='outdoor'){
+    const fut=sc.filter(s=>s>h+.05);
+    if(fut.length&&logs.length)html+=`<div style="height:.5px;background:var(--sep);margin:0 18px;"></div>`;
+    fut.slice(0,3).forEach(s=>{const m=mu(s);html+=`<div class="li"><div class="lic p">🕐</div><div class="lct"><div class="lt p">${fH(s)}</div><div class="lm">${l.lfl} · ${l.lfs(m)}</div></div><span class="lf">›</span></div>`;});
+  }
+  list.innerHTML=html||`<div class="el">${l.el}</div>`;
+}
+
+function renderBars(ch){
+  const slots=[5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20];
+  const b=document.getElementById('bars');b.innerHTML='';
+  slots.forEach(h=>{
+    const u=uv(h,env),p=Math.max(5,(u/10.5)*100),isN=Math.abs(h-ch)<.7;
+    const isL=logs.some(l=>Math.abs(l.time.getHours()-h)<.5);
+    const c=u<2?'var(--green)':u<5?'var(--yellow)':u<7?'var(--orange)':u<10?'var(--red)':'var(--purple)';
+    const col=document.createElement('div');col.className='bc';
+    col.innerHTML=`<div class="bar${isN?' now':''}" style="height:${p}%;background:${c};opacity:${isN?1:.55};${isN?'box-shadow:0 0 0 2px rgba(0,0,0,.15)':''}${isL?';outline:2px solid var(--green);outline-offset:1px':''}"></div><div class="blbl${isN?' now':''}">${h}</div>`;
+    b.appendChild(col);
+  });
+}
+
+function renderRecs(u,e){
+  const l=L(),r=l.r,sk=SKD[skn];const recs=[];
+  if(e==='indoor'){r.inl.forEach(x=>recs.push(x));}
+  else{
+    if(u<2)r.lo.forEach(x=>recs.push(x));
+    if(u>=2)recs.push(r.spf(sk.spf));
+    if(u>=4)recs.push(r.hat);if(u>=4)recs.push(r.glass);
+    if(u>=6)recs.push(r.umb);if(u>=6)recs.push(r.wat);
+    if(u>=8)recs.push(r.avd);if(u>=3)recs.push(r.rep);
+  }
+  document.getElementById('recs').innerHTML=recs.map(x=>`<div class="rr"><div class="ri">${x.slice(0,2)}</div><div class="rt">${x.slice(2).trim()}</div></div>`).join('');
+}
+
+function onApply(e){
+  const btn=document.getElementById('abt'),rect=btn.getBoundingClientRect();
+  const rip=document.createElement('div');rip.className='rip';
+  rip.style.cssText=`left:${e.clientX-rect.left-20}px;top:${e.clientY-rect.top-20}px;width:40px;height:40px`;
+  btn.appendChild(rip);setTimeout(()=>rip.remove(),600);
+  pat=new Date();
+  document.getElementById('msub').textContent=L().msub(fD(pat));
+  document.getElementById('modal').classList.add('on');
+}
+
+function confirmApply(){
+  if(!pat)return;
+  const l=L(),sk=SKD[skn],log={time:pat,label:l.lm(sk.spf)};
+  logs.push(log);pat=null;closeMN();
+  toast(l.ta(fD(log.time)));update();
+}
+
+function delLog(i){logs.splice(i,1);toast(L().td);update();}
+function closeMO(e){if(e.target===document.getElementById('modal'))closeMN();}
+function closeMN(){document.getElementById('modal').classList.remove('on');}
+
+function detectEnv(){
+  if('AmbientLightSensor' in window){
+    try{const s=new AmbientLightSensor();s.addEventListener('reading',()=>{const lx=s.illuminance,d=lx>600?'outdoor':'indoor';if(!aud||d!==env){aud=true;setEnv(d,L().lr(Math.round(lx)));}});s.start();return;}catch(e){}
+  }
+  setTimeout(()=>{const h=nowH(),g=(h>=7&&h<=19)?'outdoor':'indoor';if(!aud){aud=true;setEnv(g,L().tr);}hideBanner();},2200);
+}
+
+function setEnv(e,reason){env=e;hideBanner();update();if(reason)toast(e==='indoor'?L().toi(reason):L().too(reason));}
+function toggleEnv(){env=env==='outdoor'?'indoor':'outdoor';aud=true;update();toast(env==='indoor'?L().tsi:L().tso);}
+function hideBanner(){const b=document.getElementById('db');b.style.transition='opacity .4s,max-height .4s';b.style.opacity='0';b.style.maxHeight='0';b.style.overflow='hidden';b.style.marginTop='0';b.style.padding='0';}
+
+function setSkin(i){skn=i;document.querySelectorAll('.so').forEach((b,j)=>b.classList.toggle('on',j===i));update();}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2200);}
+
+function tick(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString(lang==='en'?'en-US':lang==='ja'?'ja-JP':'zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});
+  update();
+}
+
+applyStatic();detectEnv();tick();setInterval(tick,10000);
+</script>
+</body>
+</html>
