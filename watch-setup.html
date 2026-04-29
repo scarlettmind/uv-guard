@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>UV Guard · Watch 设置</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f2f2f7;--bg2:#fff;--text:#1c1c1e;--text2:#3a3a3c;--text3:#8e8e93;
+  --sep:rgba(60,60,67,0.12);--blue:#007aff;--green:#34c759;--orange:#ff9500;
+  --red:#ff3b30;--r:18px;--font:-apple-system,'DM Sans',sans-serif;
+  --sb:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#000;--bg2:#1c1c1e;--text:#fff;--text2:rgba(235,235,245,.8);--text3:rgba(235,235,245,.6);--sep:rgba(84,84,88,.6);}
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:calc(40px + var(--sb));}
+.hdr{padding:20px 20px 0;display:flex;align-items:center;gap:10px;}
+.hdr-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(145deg,#ff9500,#ff6b00);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.hdr h1{font-size:22px;font-weight:700;letter-spacing:-.5px;}
+.hdr p{font-size:13px;color:var(--text3);margin-top:2px;}
+
+.sect{margin:24px 16px 0;}
+.sect-title{font-size:13px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;padding:0 4px;margin-bottom:8px;}
+.card{background:var(--bg2);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);}
+
+.step{display:flex;align-items:flex-start;gap:14px;padding:16px 18px;}
+.step+.step{border-top:.5px solid var(--sep);}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--blue);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-body h3{font-size:15px;font-weight:600;letter-spacing:-.2px;margin-bottom:4px;}
+.step-body p{font-size:13px;color:var(--text2);line-height:1.55;}
+.step-body code{font-size:12px;background:rgba(0,122,255,.1);color:var(--blue);padding:2px 7px;border-radius:6px;font-family:ui-monospace,monospace;}
+
+.big-btn{display:block;width:calc(100% - 32px);margin:16px 16px 0;padding:17px;background:var(--blue);border:none;border-radius:14px;font-family:var(--font);font-size:17px;font-weight:600;color:#fff;text-align:center;cursor:pointer;text-decoration:none;transition:filter .12s;-webkit-tap-highlight-color:transparent;}
+.big-btn:active{filter:brightness(.88);}
+.big-btn.green{background:var(--green);}
+.big-btn.orange{background:var(--orange);}
+
+.skin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 16px;}
+.skin-opt{border:1.5px solid var(--sep);border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.skin-opt.on{border-color:var(--blue);background:rgba(0,122,255,.07);}
+.skin-dot{width:22px;height:22px;border-radius:50%;margin:0 auto 6px;border:1px solid rgba(0,0,0,.1);}
+.skin-lbl{font-size:11px;color:var(--text2);font-weight:500;line-height:1.3;}
+
+.preview{background:var(--bg2);border-radius:var(--r);margin:0 16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06),0 0 0 .5px rgba(0,0,0,.04);}
+.prev-banner{padding:14px 18px;background:var(--orange);display:flex;align-items:center;justify-content:space-between;transition:background .4s;}
+.prev-banner.green{background:var(--green);}
+.prev-banner.red{background:var(--red);}
+.prev-l{font-size:11px;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px;}
+.prev-v{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.4px;}
+.prev-r{font-size:13px;color:rgba(255,255,255,.85);text-align:right;}
+
+.logic-row{display:flex;align-items:center;padding:12px 18px;gap:12px;}
+.logic-row+.logic-row{border-top:.5px solid var(--sep);}
+.uv-badge{padding:4px 10px;border-radius:8px;font-size:12px;font-weight:600;}
+.logic-desc{font-size:13px;color:var(--text2);}
+
+.note{margin:12px 16px 0;padding:13px 16px;background:rgba(0,122,255,.08);border-radius:13px;font-size:13px;color:var(--blue);line-height:1.55;font-weight:500;}
+
+.fn{text-align:center;font-size:11px;color:var(--text3);padding:24px 24px 0;line-height:1.6;}
+
+.copy-block{background:var(--bg);border-radius:10px;padding:12px 14px;margin-top:8px;font-size:12px;font-family:ui-monospace,monospace;color:var(--text2);word-break:break-all;line-height:1.6;position:relative;}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);}
+
+.toast{position:fixed;bottom:calc(24px + var(--sb));left:50%;transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;padding:11px 20px;border-radius:12px;font-size:14px;font-weight:500;white-space:nowrap;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;}
+.toast.on{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-icon">☀️</div>
+  <div>
+    <h1>UV Guard Watch</h1>
+    <p>将防晒提醒同步到 Apple Watch</p>
+  </div>
+</div>
+
+<div class="sect">
+  <div class="sect-title">第一步：选择你的肤质</div>
+  <div class="card">
+    <div class="skin-grid" id="skinGrid">
+      <div class="skin-opt on" onclick="setSkin(0,this)"><div class="skin-dot" style="background:#fde8d0"></div><div class="skin-lbl">I 型<br>极白</div></div>
+      <div class="skin-opt" onclick="setSkin(1,this)"><div class="skin-dot" style="background:#deb887"></div><div class="skin-lbl">II 型<br>白皙</div></div>
+      <div class="skin-opt" onclick="setSkin(2,this)"><div class="skin-dot" style="background:#c8a882"></div><div class="skin-lbl">III 型<br>中等</div></div>
+      <div class="skin-opt" onclick="setSkin(3,this)"><div class="skin-dot" style="background:#8d5524"></div><div class="skin-lbl">IV 型<br>偏深</div></div>
+    </div>
+    <div style="padding:0 16px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <span style="font-size:13px;color:var(--text3);">建议防晒：</span>
+      <span id="spf-badge" style="background:rgba(255,149,0,.12);color:#854F0B;padding:4px 10px;border-radius:8px;font-size:13px;font-weight:600;">SPF 50+</span>
+      <span id="burn-badge" style="background:rgba(255,59,48,.1);color:#A32D2D;padding:4px 10px;border-radius:8px;font-size:13px;font-weight:600;">裸肤 8 分钟灼伤</span>
+    </div>
+  </div>
+</div>
+
+<div class="sect">
+  <div class="sect-title">提醒逻辑预览</div>
+  <div class="preview">
+    <div class="prev-banner green" id="prevBanner">
+      <div>
+        <div class="prev-l">下次补涂</div>
+        <div class="prev-v" id="prevTime">10:30</div>
+      </div>
+      <div class="prev-r" id="prevSub">2 小时后</div>
+    </div>
+    <div class="logic-row"><span class="uv-badge" style="background:rgba(52,199,89,.15);color:#27500A;">UV 0–2</span><span class="logic-desc">极低，无需防晒，不提醒</span></div>
+    <div class="logic-row"><span class="uv-badge" style="background:rgba(255,204,0,.2);color:#633806;">UV 3–5</span><span class="logic-desc">中等，每 <b id="int35">2</b> 小时提醒</span></div>
+    <div class="logic-row"><span class="uv-badge" style="background:rgba(255,149,0,.2);color:#854F0B;">UV 6–7</span><span class="logic-desc">较高，每 <b id="int67">2</b> 小时提醒</span></div>
+    <div class="logic-row"><span class="uv-badge" style="background:rgba(255,59,48,.15);color:#A32D2D;">UV 8+</span><span class="logic-desc">极高，每 <b id="int8">2</b> 小时提醒</span></div>
+  </div>
+</div>
+
+<div class="sect">
+  <div class="sect-title">第二步：在捷径 App 中搭建</div>
+  <div class="card">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>打开「捷径」App</h3>
+        <p>点击右上角 <code>+</code> 新建捷径，命名为 <code>UV Guard</code></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>获取当前 UV 指数</h3>
+        <p>搜索添加「<code>获取当前天气状况</code>」→ 再添加「<code>获取天气状况的详细信息</code>」→ 选择 <code>紫外线指数</code></p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>添加判断逻辑</h3>
+        <p>添加「<code>如果</code>」→ 条件设为「<code>紫外线指数 大于等于 3</code>」→ 在 If 里添加「<code>显示通知</code>」，内容填写：</p>
+        <div class="copy-block" id="notifText">☀️ UV <span id="notif-uv">指数高</span>，该补涂 SPF<span id="notif-spf">50</span>+ 防晒霜了！<button class="copy-btn" onclick="copyText('notifText')">复制</button></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>设置自动化触发</h3>
+        <p>捷径 App → 底部「<code>自动化</code>」→ 新建 → 选「<code>时间</code>」→ 设为每天 <code>08:00、10:00、12:00、14:00、16:00</code> 各触发一次，运行「UV Guard」</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body">
+        <h3>添加到手表表盘</h3>
+        <p>在 iPhone Watch App → 「表盘图库」→ 选你的表盘 → 编辑「复杂功能」→ 选「<code>捷径</code>」→ 选 <code>UV Guard</code>。点一下可立即手动触发检查。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="note">💡 通知会同步推送到 Apple Watch，手表震动 + 显示通知内容，无需额外设置。</div>
+
+<div class="sect">
+  <div class="sect-title">第三步：复制通知文案</div>
+  <div class="card" style="padding:16px 18px;">
+    <p style="font-size:13px;color:var(--text3);margin-bottom:10px;">根据你的肤质，复制以下文案粘贴到捷径通知内容里：</p>
+    <div class="copy-block" id="copyFull">
+      标题：☀️ 该补涂防晒霜了<br>
+      正文：UV 指数超过 3，请涂抹 SPF<span id="copy-spf">50</span>+ 防晒霜（<span id="copy-skin">I 型极白肤质</span>，裸肤约 <span id="copy-burn">8</span> 分钟灼伤）
+      <button class="copy-btn" onclick="copyText('copyFull')">复制</button>
+    </div>
+  </div>
+</div>
+
+<a class="big-btn" href="shortcuts://" id="openShortcuts">打开「捷径」App</a>
+
+<div class="fn">基于 WHO 紫外线指数标准 · Fitzpatrick 皮肤分类<br>UV Guard · scarlettmind.github.io/uv-guard</div>
+
+<div class="toast" id="toast">已复制</div>
+
+<script>
+const SKD=[
+  {spf:50,burn:8,f:1.9,name:'I 型极白肤质'},
+  {spf:30,burn:15,f:1.4,name:'II 型白皙肤质'},
+  {spf:30,burn:25,f:1.0,name:'III 型中等肤质'},
+  {spf:15,burn:40,f:0.65,name:'IV 型偏深肤质'}
+];
+let skn=0;
+
+function setSkin(i,el){
+  skn=i;
+  document.querySelectorAll('.skin-opt').forEach((b,j)=>b.classList.toggle('on',j===i));
+  updatePreview();
+}
+
+function updatePreview(){
+  const sk=SKD[skn];
+  document.getElementById('spf-badge').textContent='SPF '+sk.spf+'+';
+  document.getElementById('burn-badge').textContent='裸肤 '+sk.burn+' 分钟灼伤';
+  document.getElementById('notif-spf').textContent=sk.spf;
+  document.getElementById('copy-spf').textContent=sk.spf;
+  document.getElementById('copy-skin').textContent=sk.name;
+  document.getElementById('copy-burn').textContent=sk.burn;
+  const now=new Date();
+  const next=new Date(now.getTime()+2*60*60*1000);
+  const hh=String(next.getHours()).padStart(2,'0');
+  const mm=String(next.getMinutes()).padStart(2,'0');
+  document.getElementById('prevTime').textContent=hh+':'+mm;
+  document.getElementById('prevSub').textContent='2 小时后提醒';
+}
+
+function copyText(id){
+  const el=document.getElementById(id);
+  const btn=el.querySelector('.copy-btn');
+  const tmp=btn.cloneNode(true);
+  btn.remove();
+  const text=el.innerText||el.textContent;
+  el.appendChild(tmp);
+  navigator.clipboard&&navigator.clipboard.writeText(text.trim()).then(()=>{
+    const t=document.getElementById('toast');
+    t.classList.add('on');
+    setTimeout(()=>t.classList.remove('on'),1800);
+  });
+}
+
+updatePreview();
+</script>
+</body>
+</html>
